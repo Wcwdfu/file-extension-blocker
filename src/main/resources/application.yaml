@@ -1,3 +1,21 @@
 spring:
   application:
     name: demo
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/blocker?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=utf8
+    username: root
+    password: 1234
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+
+
