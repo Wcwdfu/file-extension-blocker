@@ -44,7 +44,7 @@ public class ExtensionService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "추가 확장자는 최대 200개까지 가능합니다.");
         }
 
-        if (repo.findByExtension(ext).isPresent()) {
+        if (repo.findByTypeAndExtension(ExtensionType.CUSTOM, ext).isPresent()) {
             throw new ApiException(HttpStatus.CONFLICT, "이미 존재하는 확장자입니다.");
         }
 
@@ -52,6 +52,7 @@ public class ExtensionService {
         return saved;
     }
 
+    @Transactional
     public void deleteCustom(Long id) {
 
         BlockedExtension e = repo.findById(id).orElseThrow(
@@ -72,6 +73,9 @@ public class ExtensionService {
         );
         if (blocked == null) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "blocked 값이 필요합니다.");
+        }
+        if (e.getType() == ExtensionType.CUSTOM) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "커스텀 확장자는 토글이 불가능합니다. x버튼으로 삭제해 주세요.");
         }
         e.updateBlocked(blocked);
         return e;

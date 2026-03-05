@@ -28,33 +28,27 @@ public class ExtensionApiController {
         return new ExtensionPageResponse(fixed, custom, customCount);
     }
 
-    // 2. 커스텀 확장자 수 조회
-    @GetMapping("/custom/count")
-    public long getCustomCount() {
-        return service.getCustomCount();
-    }
-
-    // 3. 커스텀 확장자 추가
+    // 2. 커스텀 확장자 추가
     @PostMapping("/custom")
     public ExtensionResponse addCustom(@Valid @RequestBody ExtensionRequest request) {
         return ExtensionResponse.from(service.addCustomExtension(request));
     }
 
-    // 4. 커스텀 확장자 제거
+    // 3. 커스텀 확장자 제거
     @DeleteMapping("/custom/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteCustom(@PathVariable Long id) {
         service.deleteCustom(id);
     }
 
-    // 5. 고정 확장자 토글
+    // 4. 고정 확장자 토글
     @PatchMapping("/{id}")
     public ExtensionResponse update(@PathVariable Long id,
                                     @RequestBody ExtensionUpdateRequest req) {
         return ExtensionResponse.from(service.updateBlocked(id, req.blocked()));
     }
 
-    // 6. 전체 초기화
+    // 5. 전체 초기화
     @PostMapping("/reset")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void reset() {

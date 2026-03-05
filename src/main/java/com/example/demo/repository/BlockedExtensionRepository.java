@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface BlockedExtensionRepository extends JpaRepository<BlockedExtension, Long> {
-    Optional<BlockedExtension> findByExtension(String extension);
+    Optional<BlockedExtension> findByTypeAndExtension(ExtensionType type, String extension);
     long countByType(ExtensionType type);
     List<BlockedExtension> findAllByTypeOrderByExtensionAsc(ExtensionType type);
 

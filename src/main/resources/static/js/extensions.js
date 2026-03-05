@@ -31,6 +31,20 @@ async function api(url, options = {}) {
 const normalizeClient = (v) => v.trim().toLowerCase();
 const EXT_RE = /^[a-z0-9]+(\.[a-z0-9]+)*$/;
 
+
+// 공통 액션 실행 헬퍼
+async function runAction(fn, successMsg = null) {
+    try {
+        showMsg("");
+        await fn();
+        await loadAll();
+        if (successMsg) showMsg(successMsg, true);
+    } catch (e) {
+        showMsg(e.message, false);
+        throw e;
+    }
+}
+
 async function loadAll() {
     const data = await api("/api/extensions");
     renderFixed(data.fixed);
@@ -38,18 +52,7 @@ async function loadAll() {
     countTextEl.textContent = `(${data.customCount} / 200)`;
 }
 
-async function runAction(fn) {
-    try {
-        showMsg("");
-        await fn();
-        await loadAll();
-    } catch (e) {
-        showMsg(e.message, false);
-    }
-}
-
-// 고정 확장자 렌더링 & 상태변경
-
+// 고정 확장자 렌더링 & 상태 변경
 function renderFixed(items) {
     fixedListEl.innerHTML = "";
 
@@ -63,20 +66,16 @@ function renderFixed(items) {
 
         cb.addEventListener("change", async () => {
             const target = cb.checked;
+            cb.disabled = true;
 
             try {
-                showMsg("");
-                cb.disabled = true;
-
-                await api(`/api/extensions/${item.id}`, {
+                await runAction(() => api(`/api/extensions/${item.id}`, {
                     method: "PATCH",
                     body: JSON.stringify({ blocked: target })
-                });
-
-                await loadAll();
+                }));
             } catch (err) {
+                // 실패 시 UI 원복
                 cb.checked = !target;
-                showMsg(err.message, false);
             } finally {
                 cb.disabled = false;
             }
@@ -91,8 +90,7 @@ function renderFixed(items) {
     });
 }
 
-// 커스텀 확장자 렌더링 & 상태변경
-
+// 커스텀 확장자 렌더링 & 삭제
 function renderCustom(items) {
     customListEl.innerHTML = "";
 
@@ -105,11 +103,19 @@ function renderCustom(items) {
 
         const x = document.createElement("button");
         x.className = "x";
+        x.type = "button";
         x.textContent = "X";
 
-        x.addEventListener("click", () =>
-            runAction(() => api(`/api/extensions/custom/${item.id}`, { method: "DELETE" }))
-        );
+        x.addEventListener("click", async () => {
+            x.disabled = true;
+            try {
+                await runAction(
+                    () => api(`/api/extensions/custom/${item.id}`, { method: "DELETE" })
+                );
+            } finally {
+                x.disabled = false;
+            }
+        });
 
         chip.appendChild(label);
         chip.appendChild(x);
@@ -118,46 +124,51 @@ function renderCustom(items) {
 }
 
 // 커스텀 확장자 추가
-addBtn.addEventListener("click", () => runAction(async () => {
-    const ext = normalizeClient(inputEl.value);
-
-    if (!ext) throw new Error("확장자를 입력해주세요.");
-    if (!EXT_RE.test(ext)) throw new Error("확장자는 영어, 숫자, .만 입력 가능합니다.");
-    if (ext.length > 20) throw new Error("확장자는 20자 이하여야 합니다.");
-
-    await api("/api/extensions/custom", {
-        method: "POST",
-        body: JSON.stringify({ extension: ext })
-    });
-
-    inputEl.value = "";
-    showMsg("추가 완료", true);
-}));
-
-// 초기화 버튼
-resetBtn.addEventListener("click", async () => {
-    const ok = confirm("정말 초기화하시겠습니까?\n- 커스텀 확장자는 모두 삭제됩니다.\n- 고정 확장자는 모두 해제됩니다.");
-    if (!ok) return;
+addBtn.addEventListener("click", async () => {
+    addBtn.disabled = true;
 
     try {
-        showMsg("");
-        resetBtn.disabled = true;
+        await runAction(async () => {
+            const ext = normalizeClient(inputEl.value);
 
-        await api("/api/extensions/reset", { method: "POST" }); // 또는 DELETE로 해도 됨
-        showMsg("초기화 완료", true);
-        await loadAll();
+            if (!ext) throw new Error("확장자를 입력해주세요.");
+            if (!EXT_RE.test(ext)) throw new Error("확장자는 영어, 숫자, .만 입력 가능합니다.");
+            if (ext.length > 20) throw new Error("확장자는 20자 이하여야 합니다.");
 
-    } catch (e) {
-        showMsg(e.message, false);
+            await api("/api/extensions/custom", {
+                method: "POST",
+                body: JSON.stringify({ extension: ext })
+            });
+
+            inputEl.value = "";
+        }, "추가 완료");
+    } finally {
+        addBtn.disabled = false;
+    }
+});
+
+// Enter로 추가
+inputEl.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") addBtn.click();
+});
+
+// 전체 초기화
+resetBtn.addEventListener("click", async () => {
+    const ok = confirm(
+        "정말 초기화하시겠습니까?\n- 커스텀 확장자는 모두 삭제됩니다.\n- 고정 확장자는 모두 해제됩니다."
+    );
+    if (!ok) return;
+
+    resetBtn.disabled = true;
+    try {
+        await runAction(
+            () => api("/api/extensions/reset", { method: "POST" }),
+            "초기화 완료"
+        );
     } finally {
         resetBtn.disabled = false;
     }
 });
 
-//
-
-inputEl.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") addBtn.click();
-});
-
+// 최초 로딩
 loadAll().catch(e => showMsg(e.message, false));

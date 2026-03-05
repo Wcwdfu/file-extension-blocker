@@ -13,10 +13,10 @@ import java.time.Instant;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(ApiException.class)
-    public ResponseEntity<ApiError> handleApi(ApiException e, HttpServletRequest req) {
-        HttpStatus status = e.status();
+    public ResponseEntity<ApiError> handleApi(ApiException exp, HttpServletRequest req) {
+        HttpStatus status = exp.status();
         return ResponseEntity.status(status).body(
-                new ApiError(status.value(), e.getMessage(), req.getRequestURI(), Instant.now())
+                new ApiError(status.value(), exp.getMessage(), req.getRequestURI(), Instant.now())
         );
     }
 
@@ -25,9 +25,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleValidation(Exception e, HttpServletRequest req) {
         String msg = "요청 값이 올바르지 않습니다.";
         if (e instanceof MethodArgumentNotValidException manv && manv.getBindingResult().hasErrors()) {
-            msg = manv.getBindingResult().getAllErrors().get(0).getDefaultMessage();
+            msg = manv.getBindingResult().getAllErrors().getFirst().getDefaultMessage();
         } else if (e instanceof BindException be && be.getBindingResult().hasErrors()) {
-            msg = be.getBindingResult().getAllErrors().get(0).getDefaultMessage();
+            msg = be.getBindingResult().getAllErrors().getFirst().getDefaultMessage();
         }
 
         HttpStatus status = HttpStatus.BAD_REQUEST;
