@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <title>파일 확장자 차단</title>
+    <link rel="stylesheet" href="/css/extensions.css">
+</head>
+
+
+<body>
+<div class="wrap">
+    <div class="header">
+        <h1>파일 확장자 차단</h1>
+        <button id="resetBtn" class="btn-reset" type="button">초기화</button>
+    </div>
+
+    <div class="muted">고정 확장자는 토글, 추가 확장자는 등록/삭제 가능합니다.</div>
+
+    <div class="section">
+        <h2>고정 확장자</h2>
+        <div id="fixedList" class="fixed-list"></div>
+    </div>
+
+    <div class="section">
+        <h2>추가 확장자</h2>
+
+        <div class="row">
+            <input id="extInput" type="text" placeholder="예: zip, mp4, tar.gz" maxlength="20"/>
+            <button id="addBtn">추가</button>
+            <div class="muted" id="countText"></div>
+        </div>
+
+        <div id="msg" class=""></div>
+
+        <div id="customList" class="chips"></div>
+    </div>
+</div>
+
+<script src="/js/extensions.js"></script>
+</body>
+
+</html>

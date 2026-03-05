@@ -1,11 +1,13 @@
 package com.example.demo.service;
 
+import com.example.demo.api.error.ApiException;
 import com.example.demo.domain.BlockedExtension;
 import com.example.demo.domain.ExtensionType;
-import com.example.demo.dto.ExtensionRequest;
+import com.example.demo.api.dto.ExtensionRequest;
 import com.example.demo.repository.BlockedExtensionRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,40 +16,75 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ExtensionService {
     private static final int CUSTOM_LIMIT = 200;
-
     private final BlockedExtensionRepository repo;
 
     public List<BlockedExtension> getAll() {
         return repo.findAll();
     }
 
-    public void addCustomExtension(ExtensionRequest request) {
-
-        String ext = normalize(request.extension());
-
-        if (repo.findByExtension(ext).isPresent()) {
-            throw new RuntimeException("이미 존재하는 확장자입니다.");
-        }
-
-        long count = repo.countByType(ExtensionType.CUSTOM);
-        if (count >= CUSTOM_LIMIT) {
-            throw new RuntimeException("추가 확장자는 최대 200개까지 가능합니다.");
-        }
-
-        BlockedExtension entity = new BlockedExtension(ext, true, ExtensionType.CUSTOM);
-
-        repo.save(entity);
+    public List<BlockedExtension> getFixed() {
+        return repo.findAllByTypeOrderByExtensionAsc(ExtensionType.FIXED);
     }
 
-    public void deleteExtension(Long id) {
-        BlockedExtension entity = repo.findById(id).orElseThrow(()-> new RuntimeException("존재하지 않은 확장자 입니다."));
-        repo.delete(entity);
+    public List<BlockedExtension> getCustom() {
+        return repo.findAllByTypeOrderByExtensionAsc(ExtensionType.CUSTOM);
+    }
+
+    public long getCustomCount() {
+        return repo.countByType(ExtensionType.CUSTOM);
     }
 
     @Transactional
-    public void toggleExtension(Long id) {
-        BlockedExtension extension = repo.findById(id).orElseThrow(() -> new RuntimeException("등록되지 않은 확장자 입니다."));
-        extension.toggleBlocked();
+    public BlockedExtension addCustomExtension(ExtensionRequest request) {
+
+        String ext = normalize(request.extension());
+
+        long count = repo.countByType(ExtensionType.CUSTOM);
+        if (count >= CUSTOM_LIMIT) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "추가 확장자는 최대 200개까지 가능합니다.");
+        }
+
+        if (repo.findByExtension(ext).isPresent()) {
+            throw new ApiException(HttpStatus.CONFLICT, "이미 존재하는 확장자입니다.");
+        }
+
+        BlockedExtension saved = repo.save(new BlockedExtension(ext, true, ExtensionType.CUSTOM));
+        return saved;
+    }
+
+    public void deleteCustom(Long id) {
+
+        BlockedExtension e = repo.findById(id).orElseThrow(
+                () -> new ApiException(HttpStatus.NOT_FOUND, "등록되지 않은 확장자입니다.")
+        );
+
+        if (e.getType() != ExtensionType.CUSTOM) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "고정 확장자는 삭제할 수 없습니다.");
+        }
+
+        repo.delete(e);
+    }
+
+    @Transactional
+    public BlockedExtension updateBlocked(Long id, Boolean blocked) {
+        BlockedExtension e = repo.findById(id).orElseThrow(
+                () -> new ApiException(HttpStatus.NOT_FOUND , "등록되지 않은 확장자입니다.")
+        );
+        if (blocked == null) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "blocked 값이 필요합니다.");
+        }
+        e.updateBlocked(blocked);
+        return e;
+    }
+
+    @Transactional
+    public void resetAll() {
+        repo.deleteAllByType(ExtensionType.CUSTOM);
+
+        List<BlockedExtension> fixed = repo.findAllByType(ExtensionType.FIXED);
+        for (BlockedExtension e : fixed) {
+            e.updateBlocked(false);
+        }
     }
 
     private String normalize(String extension) {

@@ -1,10 +1,13 @@
-package com.example.demo.controller;
+package com.example.demo.api.controller;
 
-import com.example.demo.dto.ExtensionRequest;
-import com.example.demo.dto.ExtensionResponse;
+import com.example.demo.api.dto.ExtensionPageResponse;
+import com.example.demo.api.dto.ExtensionRequest;
+import com.example.demo.api.dto.ExtensionResponse;
+import com.example.demo.api.dto.ExtensionUpdateRequest;
 import com.example.demo.service.ExtensionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,38 +18,46 @@ import java.util.List;
 public class ExtensionApiController {
     private final ExtensionService service;
 
+    // 1. 페이지 전체 조회
     @GetMapping
-    public List<ExtensionResponse> getAll() {
-        return service.getAll().stream().map(ExtensionResponse::from).toList();
+    public ExtensionPageResponse getAll() {
+        List<ExtensionResponse> fixed = service.getFixed().stream().map(ExtensionResponse::from).toList();
+        List<ExtensionResponse> custom = service.getCustom().stream().map(ExtensionResponse::from).toList();
+        long customCount = custom.size();
+
+        return new ExtensionPageResponse(fixed, custom, customCount);
     }
 
-    @GetMapping("/fixed")
-    public List<ExtensionResponse> getFixed() {
-        return service.getFixed().stream().map(ExtensionResponse::from).toList();
-    }
-
-    @GetMapping("/custom")
-    public List<ExtensionResponse> getCustom() {
-        return service.getCustom().stream().map(ExtensionResponse::from).toList();
-    }
-
+    // 2. 커스텀 확장자 수 조회
     @GetMapping("/custom/count")
     public long getCustomCount() {
         return service.getCustomCount();
     }
 
+    // 3. 커스텀 확장자 추가
     @PostMapping("/custom")
     public ExtensionResponse addCustom(@Valid @RequestBody ExtensionRequest request) {
         return ExtensionResponse.from(service.addCustomExtension(request));
     }
 
+    // 4. 커스텀 확장자 제거
     @DeleteMapping("/custom/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteCustom(@PathVariable Long id) {
         service.deleteCustom(id);
     }
 
-    @PatchMapping("/{id}/toggle")
-    public ExtensionResponse toggle(@PathVariable Long id) {
-        return ExtensionResponse.from(service.toggle(id));
+    // 5. 고정 확장자 토글
+    @PatchMapping("/{id}")
+    public ExtensionResponse update(@PathVariable Long id,
+                                    @RequestBody ExtensionUpdateRequest req) {
+        return ExtensionResponse.from(service.updateBlocked(id, req.blocked()));
+    }
+
+    // 6. 전체 초기화
+    @PostMapping("/reset")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void reset() {
+        service.resetAll();
     }
 }

@@ -1,4 +1,11 @@
 package com.example.demo.api.error;
 
-public record ApiError() {
+import java.time.Instant;
+
+public record ApiError(
+        int status,
+        String message,
+        String path,
+        Instant timeStamp
+) {
 }

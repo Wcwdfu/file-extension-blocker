@@ -1,4 +1,4 @@
-package com.example.demo.dto;
+package com.example.demo.api.dto;
 
 import com.example.demo.domain.BlockedExtension;
 

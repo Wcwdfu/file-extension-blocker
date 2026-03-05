@@ -1,0 +1,94 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 24px;
+}
+.header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+}
+.btn-reset{
+    padding:8px 12px;
+    border:1px solid #ddd;
+    background:#fff;
+    border-radius:8px;
+    cursor:pointer;
+}
+.btn-reset:disabled{
+    opacity:0.6;
+    cursor:not-allowed;
+}
+.wrap {
+    max-width: 720px;
+    margin: 0 auto;
+}
+h1 {
+    margin-bottom: 12px;
+}
+.section {
+    border: 1px solid #ddd;
+    padding: 16px;
+    margin-top: 16px;
+    border-radius: 8px;
+}
+.row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+input[type="text"] {
+    padding: 10px;
+    width: 240px;
+}
+button {
+    padding: 10px 14px;
+    cursor: pointer;
+}
+.chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 999px;
+}
+.chip .x {
+    border: none;
+    background: #f3f3f3;
+    border-radius: 999px;
+    padding: 4px 8px;
+    cursor: pointer;
+}
+.muted {
+    color: #777;
+    font-size: 14px;
+}
+.error {
+    color: #c00;
+    margin-top: 8px;
+}
+.ok {
+    color: #0a0;
+    margin-top: 8px;
+}
+.fixed-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 10px;
+}
+.fixed-item {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    border: 1px solid #eee;
+    padding: 8px 10px;
+    border-radius: 10px;
+}

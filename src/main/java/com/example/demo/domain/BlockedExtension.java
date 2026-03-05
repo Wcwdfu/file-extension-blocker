@@ -21,8 +21,8 @@ public class BlockedExtension {
     @Enumerated(EnumType.STRING)
     private ExtensionType type;
 
-    public void toggleBlocked() {
-        this.blocked = !this.blocked;
+    public void updateBlocked(boolean blocked) {
+        this.blocked = blocked;
     }
 
     public BlockedExtension(String extension, boolean blocked, ExtensionType type) {
