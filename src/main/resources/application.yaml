@@ -3,9 +3,9 @@ spring:
     name: demo
 
   datasource:
-    url: jdbc:mysql://localhost:3306/blocker?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=utf8
-    username: root
-    password: 1234
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
 
   jpa:
     hibernate:
