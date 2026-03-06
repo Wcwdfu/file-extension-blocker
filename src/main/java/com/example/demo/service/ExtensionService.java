@@ -18,20 +18,12 @@ public class ExtensionService {
     private static final int CUSTOM_LIMIT = 200;
     private final BlockedExtensionRepository repo;
 
-    public List<BlockedExtension> getAll() {
-        return repo.findAll();
-    }
-
     public List<BlockedExtension> getFixed() {
         return repo.findAllByTypeOrderByExtensionAsc(ExtensionType.FIXED);
     }
 
     public List<BlockedExtension> getCustom() {
         return repo.findAllByTypeOrderByExtensionAsc(ExtensionType.CUSTOM);
-    }
-
-    public long getCustomCount() {
-        return repo.countByType(ExtensionType.CUSTOM);
     }
 
     @Transactional
